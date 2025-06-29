@@ -6,14 +6,18 @@ RUN echo -e "\\n\\n# Added during image build" >> /etc/dnf/dnf.conf && \
     echo -e "minrate=100\\ntimeout=60\\n" >> /etc/dnf/dnf.conf
 
 # Install dependencies for podman-in-podman and the dev environment
-# Following the pattern from the official podman containerfile
-ARG INSTALL_RPMS="podman fuse-overlayfs openssh-clients cpp git-core golang which procps-ng"
+ARG INSTALL_RPMS="podman fuse-overlayfs openssh-clients cpp git-core golang which procps-ng curl helm"
 RUN dnf -y makecache && \
     dnf -y update && \
     rpm --setcaps shadow-utils 2>/dev/null && \
     dnf -y install $INSTALL_RPMS --exclude container-selinux && \
     dnf clean all && \
     rm -rf /var/cache /var/log/dnf* /var/log/yum.*
+
+# Install kind binary
+RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64 && \
+    chmod +x ./kind && \
+    mv ./kind /usr/local/bin/kind
 
 # Create a non-root user 'vscode' to run as, and grant it passwordless sudo.
 ARG USERNAME=vscode
@@ -26,6 +30,9 @@ RUN groupadd --gid $USER_GID $USERNAME && \
     echo "root:1:65536" > /etc/subgid && \
     echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME && \
     chmod 0440 /etc/sudoers.d/$USERNAME
+
+# Copy containers.conf
+COPY containers.conf /etc/containers/containers.conf
 
 # Create a login script to dynamically configure subordinate IDs for the user.
 RUN cat <<'EOF' > /etc/profile.d/99-podman-subuid.sh
