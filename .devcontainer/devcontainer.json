@@ -3,32 +3,32 @@
     "build": {
         "dockerfile": "Containerfile"
     },
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/caching,type=bind,z",
     // Use the "mounts" property to configure runtime file system mounts.
     // This ensures that the workspace is mounted with the correct SELinux context.
     "mounts": [
-        "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached,z"
+        "source=${localEnv:XDG_RUNTIME_DIR}/podman/podman.sock,target=/var/run/podman.sock,type=bind"
     ],
+    "containerEnv": {
+        "CONTAINER_HOST": "unix:///var/run/podman.sock"
+    },
     "runArgs": [
+        "--network=host",
         "--userns=keep-id",
         "--cap-add=SYS_ADMIN",
         "--security-opt",
         "label=disable",
         "--privileged"
     ],
-    // Configure tool-specific properties.
+    "updateRemoteUserUID": true,
     "customizations": {
-        // Configure properties specific to VS Code.
         "vscode": {
             // Add the IDs of extensions you want installed when the container is created.
             "extensions": [
-                "golang.Go"
+                "golang.Go",
+                "ms-kubernetes-tools.vscode-kubernetes-tools"
             ]
         }
     },
-    // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    // "forwardPorts": [],
-    // Use 'postCreateCommand' to run commands after the container is created.
-    // "postCreateCommand": "go version",
-    // Comment out to connect as root instead.
     "remoteUser": "vscode"
 }
