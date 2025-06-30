@@ -10,6 +10,9 @@
     "mounts": [
         "source=${localEnv:XDG_RUNTIME_DIR}/podman/podman.sock,target=/var/run/podman.sock,type=bind"
     ],
+    "containerEnv": {
+        "CONTAINER_HOST": "unix:///var/run/podman.sock"
+    },
     "runArgs": [
         "--network=host",
         "--userns=keep-id",
