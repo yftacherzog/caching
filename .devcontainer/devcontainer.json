@@ -13,6 +13,8 @@
         "CONTAINER_HOST": "unix:///var/run/podman.sock"
     },
     "runArgs": [
+        "--env-file",
+        ".devcontainer/devcontainer.env",
         "--network=host",
         "--userns=keep-id",
         "--cap-add=SYS_ADMIN",
@@ -21,6 +23,7 @@
         "--privileged"
     ],
     "updateRemoteUserUID": true,
+    "initializeCommand": "bash .devcontainer/initialize.sh",
     "customizations": {
         "vscode": {
             // Add the IDs of extensions you want installed when the container is created.
