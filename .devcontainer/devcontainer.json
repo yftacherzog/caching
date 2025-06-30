@@ -1,32 +1,25 @@
 {
     "name": "Fedora (Go & Podman)",
     "build": {
-        "dockerfile": "Containerfile"
+        "dockerfile": "Containerfile",
+        "context": ".."
     },
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/caching,type=bind,z",
-    // Use the "mounts" property to configure runtime file system mounts.
-    // This ensures that the workspace is mounted with the correct SELinux context.
+    "workspaceFolder": "/workspaces/caching",
+    "updateRemoteUserUID": true,
+    "initializeCommand": "bash .devcontainer/initialize.sh",
     "mounts": [
         "source=${localEnv:XDG_RUNTIME_DIR}/podman/podman.sock,target=/var/run/podman.sock,type=bind"
     ],
-    "containerEnv": {
-        "CONTAINER_HOST": "unix:///var/run/podman.sock"
-    },
     "runArgs": [
-        "--env-file",
-        ".devcontainer/devcontainer.env",
         "--network=host",
         "--userns=keep-id",
+        "--env-file=.devcontainer/devcontainer.env",
         "--cap-add=SYS_ADMIN",
-        "--security-opt",
-        "label=disable",
+        "--security-opt=label=disable",
         "--privileged"
     ],
-    "updateRemoteUserUID": true,
-    "initializeCommand": "bash .devcontainer/initialize.sh",
     "customizations": {
         "vscode": {
-            // Add the IDs of extensions you want installed when the container is created.
             "extensions": [
                 "golang.Go",
                 "ms-kubernetes-tools.vscode-kubernetes-tools"
