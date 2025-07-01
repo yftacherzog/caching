@@ -1,0 +1,32 @@
+# Start from an official Fedora 42 image
+FROM registry.fedoraproject.org/fedora:42
+
+# DNF tuning from official Podman Containerfile for build robustness
+RUN echo -e "\\n\\n# Added during image build" >> /etc/dnf/dnf.conf && \
+    echo -e "minrate=100\\ntimeout=60\\n" >> /etc/dnf/dnf.conf
+
+# Install dependencies for the dev environment
+ARG INSTALL_RPMS="podman openssh-clients cpp git-core golang which procps-ng curl helm kubernetes1.33-client"
+RUN dnf -y makecache && \
+    dnf -y update && \
+    dnf -y install $INSTALL_RPMS --exclude container-selinux && \
+    dnf clean all && \
+    rm -rf /var/cache /var/log/dnf* /var/log/yum.*
+
+# Install kind binary
+RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64 && \
+    chmod +x ./kind && \
+    mv ./kind /usr/local/bin/kind
+
+# Create a non-root user 'vscode' to run as, and grant it passwordless sudo.
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid $USER_GID $USERNAME && \
+    useradd --uid $USER_UID --gid $USER_GID -m $USERNAME && \
+    echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME && \
+    chmod 0440 /etc/sudoers.d/$USERNAME
+
+# Switch to the non-root user
+USER $USERNAME

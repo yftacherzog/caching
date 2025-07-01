@@ -1,0 +1,33 @@
+{
+    "name": "Fedora (Go & Podman)",
+    "build": {
+        "dockerfile": "Containerfile",
+        "context": ".."
+    },
+    "workspaceFolder": "/workspaces/caching",
+    "updateRemoteUserUID": true,
+    "initializeCommand": "bash .devcontainer/initialize.sh",
+    "mounts": [
+        "source=${localEnv:XDG_RUNTIME_DIR}/podman/podman.sock,target=/var/run/podman.sock,type=bind"
+    ],
+    "containerEnv": {
+        "CONTAINER_HOST": "unix:///var/run/podman.sock"
+    },
+    "runArgs": [
+        "--network=host",
+        "--userns=keep-id",
+        "--env-file=.devcontainer/devcontainer.env",
+        "--cap-add=SYS_ADMIN",
+        "--security-opt=label=disable",
+        "--privileged"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.Go",
+                "ms-kubernetes-tools.vscode-kubernetes-tools"
+            ]
+        }
+    },
+    "remoteUser": "vscode"
+}
