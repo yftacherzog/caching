@@ -2,7 +2,10 @@ package e2e_test
 
 import (
 	"fmt"
+	"net/http"
+	"time"
 
+	"github.com/konflux-ci/caching/tests/testhelpers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -195,6 +198,95 @@ var _ = Describe("Squid Helm Chart Deployment", func() {
 			// Basic configuration checks
 			Expect(squidConf).To(ContainSubstring("http_port 3128"))
 			Expect(squidConf).To(ContainSubstring("acl localnet src"))
+		})
+	})
+
+	Describe("HTTP Caching Functionality", func() {
+		var (
+			testServer *testhelpers.ProxyTestServer
+			client     *http.Client
+		)
+
+		BeforeEach(func() {
+			// Get the pod's IP address for cross-pod communication
+			podIP, err := getPodIP()
+			Expect(err).NotTo(HaveOccurred(), "Failed to get pod IP")
+
+			// Create test server using helpers
+			testServer, err = testhelpers.NewProxyTestServer("Hello from test server", podIP)
+			Expect(err).NotTo(HaveOccurred(), "Failed to create test server")
+
+			// Create HTTP client configured for Squid proxy using helpers
+			client, err = testhelpers.NewSquidProxyClient(serviceName, namespace)
+			Expect(err).NotTo(HaveOccurred(), "Failed to create proxy client")
+		})
+
+		AfterEach(func() {
+			if testServer != nil {
+				testServer.Close()
+			}
+		})
+
+		It("should cache HTTP responses and serve subsequent requests from cache", func() {
+			By("Making the first HTTP request through Squid proxy")
+			resp1, body1, err := testhelpers.MakeProxyRequest(client, testServer.URL)
+			Expect(err).NotTo(HaveOccurred(), "First request should succeed")
+			defer resp1.Body.Close()
+
+			// Debug: print the actual response for troubleshooting
+			fmt.Printf("DEBUG: Response status: %s\n", resp1.Status)
+			fmt.Printf("DEBUG: Response body: %s\n", string(body1))
+			fmt.Printf("DEBUG: Test server URL: %s\n", testServer.URL)
+
+			response1, err := testhelpers.ParseTestServerResponse(body1)
+			Expect(err).NotTo(HaveOccurred(), "Should parse first response JSON")
+
+			// Verify first request reached the server using helpers
+			testhelpers.ValidateServerHit(response1, 1, testServer)
+
+			By("Making the second HTTP request for the same URL")
+			// Wait a moment to ensure any timing-related caching issues are avoided
+			time.Sleep(100 * time.Millisecond)
+
+			resp2, body2, err := testhelpers.MakeProxyRequest(client, testServer.URL)
+			Expect(err).NotTo(HaveOccurred(), "Second request should succeed")
+			defer resp2.Body.Close()
+
+			response2, err := testhelpers.ParseTestServerResponse(body2)
+			Expect(err).NotTo(HaveOccurred(), "Should parse second response JSON")
+
+			By("Verifying the second request was served from cache")
+			// Use helper to validate cache hit
+			testhelpers.ValidateCacheHit(response1, response2, 1)
+
+			// Server should still have received only 1 request
+			Expect(testServer.GetRequestCount()).To(Equal(int32(1)), "Server should still have received only 1 request")
+
+			// Response bodies should be identical (served from cache)
+			Expect(string(body2)).To(Equal(string(body1)), "Cached response should be identical to original")
+
+			By("Verifying cache headers are present")
+			testhelpers.ValidateCacheHeaders(resp1)
+			testhelpers.ValidateCacheHeaders(resp2)
+		})
+
+		It("should handle different URLs independently", func() {
+			By("Making requests to different endpoints")
+
+			// First URL
+			resp1, _, err := testhelpers.MakeProxyRequest(client, testServer.URL+"/endpoint1")
+			Expect(err).NotTo(HaveOccurred())
+			defer resp1.Body.Close()
+
+			initialCount := testServer.GetRequestCount()
+
+			// Second URL (different from first)
+			resp2, _, err := testhelpers.MakeProxyRequest(client, testServer.URL+"/endpoint2")
+			Expect(err).NotTo(HaveOccurred())
+			defer resp2.Body.Close()
+
+			// Both requests should hit the server (different URLs)
+			Expect(testServer.GetRequestCount()).To(Equal(initialCount+1), "Different URLs should not be cached together")
 		})
 	})
 })
