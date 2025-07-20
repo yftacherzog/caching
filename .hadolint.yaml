@@ -1,0 +1,30 @@
+---
+# Hadolint configuration file
+# https://github.com/hadolint/hadolint#configure
+
+# Set failure threshold (error | warning | info | style | ignore | none)
+failure-threshold: warning
+
+# Ignore specific rules if needed
+ignored:
+  - SC3037 # In POSIX sh, echo flags are undefined.
+  - DL3041 # Specify version with `dnf install -y <package>-<version>`.
+
+# Override rule severity
+override:
+  warning:
+    - DL3059 # Multiple consecutive RUN instructions
+  info:
+    []
+    # - DL3047  # wget without progress flag
+
+# Trusted registries (for FROM instructions)
+trustedRegistries:
+  - registry.access.redhat.com
+  - registry.redhat.io
+  - registry.fedoraproject.org
+  - docker.io
+  - quay.io
+
+# Specify format for output (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy | sonarqube | sarif)
+format: tty
