@@ -26,6 +26,8 @@ spec:
     value: quay.io/yftacherzog-konflux/user-ns2/squid-helm:{{revision}}
   - name: dockerfile
     value: helm.Containerfile
+  - name: path-context
+    value: "squid"
   pipelineSpec:
     description: |
       This pipeline is ideal for building Helm charts while maintaining trust after pipeline customization.
