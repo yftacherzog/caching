@@ -2,31 +2,30 @@ apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   annotations:
-    build.appstudio.openshift.io/repo: https://github.com/konflux-ci/caching?rev={{revision}}
-    build.appstudio.redhat.com/commit_sha: "{{revision}}"
-    build.appstudio.redhat.com/target_branch: "{{target_branch}}"
-    pipelinesascode.tekton.dev/cancel-in-progress: "true"
+    build.appstudio.openshift.io/repo: https://github.com/yftacherzog/caching?rev={{revision}}
+    build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/target_branch: '{{target_branch}}'
+    pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch == "main"
+    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
+      == "setup-release"
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: caching
     appstudio.openshift.io/component: squid-helm
     pipelines.appstudio.openshift.io/type: build
   name: squid-helm-on-push
-  namespace: konflux-vanguard-tenant
+  namespace: user-ns2
 spec:
   params:
-    - name: git-url
-      value: "{{source_url}}"
-    - name: revision
-      value: "{{revision}}"
-    - name: output-image
-      value: quay.io/redhat-user-workloads/konflux-vanguard-tenant/caching/squid-helm:{{revision}}
-    - name: dockerfile
-      value: helm.Containerfile
-    - name: path-context
-      value: "squid"
+  - name: git-url
+    value: '{{source_url}}'
+  - name: revision
+    value: '{{revision}}'
+  - name: output-image
+    value: quay.io/yftacherzog-konflux/user-ns2/squid-helm:{{revision}}
+  - name: dockerfile
+    value: helm.Containerfile
   pipelineSpec:
     description: |
       This pipeline is ideal for building Helm charts while maintaining trust after pipeline customization.
@@ -194,11 +193,11 @@ spec:
               [
                 {
                   "source": "localhost/konflux-ci/squid",
-                  "target": "quay.io/redhat-user-workloads/konflux-vanguard-tenant/caching/squid:{{revision}}"
+                  "target": "quay.io/yftacherzog-konflux/user-ns2/squid:{{revision}}"
                 },
                 {
                   "source": "localhost/konflux-ci/squid-test",
-                  "target": "quay.io/redhat-user-workloads/konflux-vanguard-tenant/caching/squid-tester:{{revision}}"
+                  "target": "quay.io/yftacherzog-konflux/user-ns2/squid-tester:{{revision}}"
                 }
               ]
           - name: VERSION_SUFFIX
@@ -302,14 +301,14 @@ spec:
           values:
           - "false"
     workspaces:
-      - name: git-auth
-        optional: true
-      - name: netrc
-        optional: true
+    - name: git-auth
+      optional: true
+    - name: netrc
+      optional: true
   taskRunTemplate:
     serviceAccountName: build-pipeline-squid-helm
   workspaces:
-    - name: git-auth
-      secret:
-        secretName: "{{ git_auth_secret }}"
+  - name: git-auth
+    secret:
+      secretName: '{{ git_auth_secret }}'
 status: {}
