@@ -8,17 +8,17 @@ import (
 )
 
 var _ = Describe("Helm Template Trust-Manager Bundle Configuration", func() {
-	It("should preserve the default Bundle name and target key", func() {
+	It("should derive the default Bundle name from the Squid namespace and preserve the target key", func() {
 		output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{})
 		Expect(err).NotTo(HaveOccurred())
 		var b map[string]interface{}
 		Expect(yaml.Unmarshal([]byte(extractTrustManagerBundleSection(output)), &b)).To(Succeed())
-		Expect(b["metadata"].(map[string]interface{})["name"]).To(Equal("caching-ca-bundle"))
+		Expect(b["metadata"].(map[string]interface{})["name"]).To(Equal("squid-proxy-ca-bundle"))
 		spec := b["spec"].(map[string]interface{})
 		Expect(spec["sources"]).To(HaveLen(1))
 		Expect(spec["target"].(map[string]interface{})["configMap"]).To(Equal(map[string]interface{}{"key": "ca-bundle.crt"}))
 	})
-	It("should keep the legacy Bundle name while trusting both proxy roots", func() {
+	It("should honor an explicit Bundle name while trusting additional proxy roots", func() {
 		output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
 			Squid: &testhelpers.SquidValues{Namespace: "container-image-proxy"},
 			SelfsignedBundle: &testhelpers.SelfsignedBundleValues{
@@ -37,7 +37,7 @@ var _ = Describe("Helm Template Trust-Manager Bundle Configuration", func() {
 		))
 		Expect(spec["target"].(map[string]interface{})["configMap"]).To(Equal(map[string]interface{}{"key": "ca-bundle.crt"}))
 	})
-	It("should allow stopping management of the legacy Bundle without removing CA resources", func() {
+	It("should allow disabling Bundle management without removing CA resources", func() {
 		output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{SelfsignedBundle: &testhelpers.SelfsignedBundleValues{Enabled: testhelpers.BoolPtr(false)}})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(extractTrustManagerBundleSection(output)).To(BeEmpty())
