@@ -399,7 +399,8 @@ type SquidValues struct {
 	Name      string `json:"name,omitempty"`
 }
 
-type SquidHelmValues struct {
+// HelmValues holds chart values shared by the squid and nginx test helpers.
+type HelmValues struct {
 	Squid              *SquidValues              `json:"squid,omitempty"`
 	SquidExporter      *SquidExporterValues      `json:"squidExporter,omitempty"`
 	SelfsignedBundle   *SelfsignedBundleValues   `json:"selfsigned-bundle,omitempty"`
@@ -415,6 +416,9 @@ type SquidHelmValues struct {
 	Prometheus         *PrometheusValues         `json:"prometheus,omitempty"`
 	Test               *TestValues               `json:"test,omitempty"`
 }
+
+// SquidHelmValues is retained for compatibility with the squid E2E helpers.
+type SquidHelmValues = HelmValues
 
 // SelfsignedBundleValues holds trust-manager Bundle configuration
 type SelfsignedBundleValues struct {
@@ -651,14 +655,14 @@ func UpgradeChartWithArgs(releaseName, chartName string, valuesFile string, extr
 }
 
 // RenderHelmTemplate renders the Helm template with the given values and returns the YAML output
-func RenderHelmTemplate(chartPath string, values SquidHelmValues) (string, error) {
+func RenderHelmTemplate(chartPath string, values HelmValues) (string, error) {
 	return RenderHelmTemplateWithKubeVersion(chartPath, values, "")
 }
 
 // RenderHelmTemplateWithKubeVersion renders the Helm template with the given values and optional kube version.
 // If kubeVersion is non-empty, helm template is run with --kube-version to simulate that cluster version
 // (e.g. "1.29.0" to test behavior on pre-1.30 clusters).
-func RenderHelmTemplateWithKubeVersion(chartPath string, values SquidHelmValues, kubeVersion string) (string, error) {
+func RenderHelmTemplateWithKubeVersion(chartPath string, values HelmValues, kubeVersion string) (string, error) {
 	// Environment is passed from test pod via SQUID_ENVIRONMENT env var
 	environment := os.Getenv("SQUID_ENVIRONMENT")
 	if environment == "" {
@@ -693,7 +697,7 @@ func RenderHelmTemplateWithKubeVersion(chartPath string, values SquidHelmValues,
 }
 
 // writeValuesToFile writes the given values in YAML format to a temp file and returns the path to the file
-func writeValuesToFile(values *SquidHelmValues) (string, error) {
+func writeValuesToFile(values *HelmValues) (string, error) {
 	data, err := yaml.Marshal(values)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal values to YAML: %w", err)

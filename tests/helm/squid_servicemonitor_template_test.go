@@ -10,7 +10,7 @@ import (
 var _ = Describe("Helm Template Squid ServiceMonitor Configuration", func() {
 	Describe("Squid ServiceMonitor Rendering Conditions", func() {
 		It("should not render ServiceMonitor when squid is disabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderSquidTemplate(testhelpers.HelmValues{
 				Squid: &testhelpers.SquidValues{
 					Enabled: testhelpers.BoolPtr(false),
 				},
@@ -22,7 +22,7 @@ var _ = Describe("Helm Template Squid ServiceMonitor Configuration", func() {
 		})
 
 		It("should not render ServiceMonitor when squidExporter is disabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderSquidTemplate(testhelpers.HelmValues{
 				SquidExporter: &testhelpers.SquidExporterValues{
 					Enabled: testhelpers.BoolPtr(false),
 				},
@@ -34,7 +34,7 @@ var _ = Describe("Helm Template Squid ServiceMonitor Configuration", func() {
 		})
 
 		It("should not render ServiceMonitor when prometheus.serviceMonitor is disabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderSquidTemplate(testhelpers.HelmValues{
 				Prometheus: &testhelpers.PrometheusValues{
 					ServiceMonitor: &testhelpers.ServiceMonitorValues{
 						Enabled: testhelpers.BoolPtr(false),
@@ -48,7 +48,7 @@ var _ = Describe("Helm Template Squid ServiceMonitor Configuration", func() {
 		})
 
 		It("should not render ServiceMonitor when multiple components are disabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderSquidTemplate(testhelpers.HelmValues{
 				Squid: &testhelpers.SquidValues{
 					Enabled: testhelpers.BoolPtr(false),
 				},
@@ -63,7 +63,7 @@ var _ = Describe("Helm Template Squid ServiceMonitor Configuration", func() {
 		})
 
 		It("should render ServiceMonitor when all three conditions are enabled (default behavior)", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{})
+			output, err := renderSquidTemplate(testhelpers.HelmValues{})
 			Expect(err).NotTo(HaveOccurred())
 
 			serviceMonitor := extractSquidServiceMonitorSection(output)
@@ -72,7 +72,7 @@ var _ = Describe("Helm Template Squid ServiceMonitor Configuration", func() {
 		})
 
 		It("should render ServiceMonitor when all three conditions are explicitly enabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderSquidTemplate(testhelpers.HelmValues{
 				Squid: &testhelpers.SquidValues{
 					Enabled: testhelpers.BoolPtr(true),
 				},

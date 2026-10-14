@@ -9,7 +9,7 @@ import (
 
 var _ = Describe("Helm Template Trust-Manager Bundle Configuration", func() {
 	It("should derive the default Bundle name from the Squid namespace and preserve the target key", func() {
-		output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{})
+		output, err := renderSquidTemplate(testhelpers.HelmValues{})
 		Expect(err).NotTo(HaveOccurred())
 		var b map[string]interface{}
 		Expect(yaml.Unmarshal([]byte(extractTrustManagerBundleSection(output)), &b)).To(Succeed())
@@ -19,7 +19,7 @@ var _ = Describe("Helm Template Trust-Manager Bundle Configuration", func() {
 		Expect(spec["target"].(map[string]interface{})["configMap"]).To(Equal(map[string]interface{}{"key": "ca-bundle.crt"}))
 	})
 	It("should honor an explicit Bundle name while trusting additional proxy roots", func() {
-		output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+		output, err := renderSquidTemplate(testhelpers.HelmValues{
 			Squid: &testhelpers.SquidValues{Namespace: "container-image-proxy"},
 			SelfsignedBundle: &testhelpers.SelfsignedBundleValues{
 				Name:              "caching-ca-bundle",
@@ -38,7 +38,7 @@ var _ = Describe("Helm Template Trust-Manager Bundle Configuration", func() {
 		Expect(spec["target"].(map[string]interface{})["configMap"]).To(Equal(map[string]interface{}{"key": "ca-bundle.crt"}))
 	})
 	It("should allow disabling Bundle management without removing CA resources", func() {
-		output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{SelfsignedBundle: &testhelpers.SelfsignedBundleValues{Enabled: testhelpers.BoolPtr(false)}})
+		output, err := renderSquidTemplate(testhelpers.HelmValues{SelfsignedBundle: &testhelpers.SelfsignedBundleValues{Enabled: testhelpers.BoolPtr(false)}})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(extractTrustManagerBundleSection(output)).To(BeEmpty())
 		Expect(extractSection(output, "# Source: caching/templates/self-signed-cluster-issuer.yaml")).NotTo(BeEmpty())
@@ -50,7 +50,7 @@ var _ = Describe("Helm Template Trust-Manager Bundle Configuration", func() {
 			{"inLine": "certificate"},
 			{"useDefaultCAs": true},
 		} {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderSquidTemplate(testhelpers.HelmValues{
 				SelfsignedBundle: &testhelpers.SelfsignedBundleValues{AdditionalSources: []map[string]interface{}{source}},
 			})
 			Expect(err).NotTo(HaveOccurred())

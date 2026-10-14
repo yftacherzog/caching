@@ -12,7 +12,7 @@ import (
 var _ = Describe("Helm Template Nginx Configuration", func() {
 	Describe("Nginx Enabled/Disabled", func() {
 		It("should not render nginx resources when nginx is disabled by default", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{})
+			output, err := renderNginxTemplate(testhelpers.HelmValues{})
 			Expect(err).NotTo(HaveOccurred())
 
 			statefulSet := extractNginxStatefulSetSection(output)
@@ -29,7 +29,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should render all nginx resources when nginx is enabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -63,7 +63,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 
 	Describe("Nginx StatefulSet Configuration", func() {
 		It("should configure replica count correctly", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled:      true,
 					ReplicaCount: 3,
@@ -79,7 +79,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should include topology spread constraints", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -96,7 +96,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should include config checksum annotation for rolling updates", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -111,7 +111,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should mount cache volume at correct path", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -128,7 +128,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 
 	Describe("Nginx Auth Configuration", func() {
 		It("should not include auth secret in init container when auth is disabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -148,7 +148,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should substitute auth header and mount auth secret when auth is enabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -179,7 +179,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should always mount processed config from init container", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -197,7 +197,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 
 	Describe("Nginx Cache Configuration", func() {
 		It("should configure cache size in volumeClaimTemplate", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -215,7 +215,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should configure cache size in nginx.conf", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -233,7 +233,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should not create cached locations when allowList is empty", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -255,7 +255,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should create cached location blocks for each allowList pattern", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -288,7 +288,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should include auth header in both cached and default locations when auth is enabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -311,7 +311,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should not render sub_filter locations when subFilters is empty", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -329,7 +329,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		It("should render sub_filter locations from nginx.subFilters values", func() {
 			once := true
 			disableCompression := true
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -371,7 +371,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should render @handle_redirect when allowList has entries", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -393,7 +393,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should NOT render @handle_redirect when allowList is empty", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -413,7 +413,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should add redirect interception to allowList locations", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -433,7 +433,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should use configured TTL in cache directives", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -454,7 +454,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should not have redirect interception in default location", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -477,7 +477,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 
 	Describe("Nginx Service trafficDistribution Configuration", func() {
 		It("should not include trafficDistribution when not set", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -492,7 +492,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should include trafficDistribution when set", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -510,7 +510,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should not include trafficDistribution when set but kube version is before 1.30", func() {
-			output, err := testhelpers.RenderHelmTemplateWithKubeVersion(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplateWithKubeVersion(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -531,7 +531,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 	Describe("Nginx ConfigMap Upstream Configuration", func() {
 		It("should configure upstream URL in all locations via variable for DNS re-resolution", func() {
 			testEnabled := false
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Test: &testhelpers.TestValues{
 					Enabled: &testEnabled,
 				},
@@ -559,7 +559,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should use default proxy_read_timeout when not specified", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -574,7 +574,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should allow overriding proxy_read_timeout", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -592,7 +592,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 
 	Describe("Nginx TLS Configuration", func() {
 		It("should not include TLS resources when disabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -619,7 +619,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should include TLS resources when enabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -654,7 +654,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should configure access-log-exporter for HTTP when TLS is disabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -677,7 +677,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should configure access-log-exporter for HTTPS using nginx TLS secret when TLS is enabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -704,7 +704,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should configure ServiceMonitor with CA ConfigMap when TLS is enabled", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -741,7 +741,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 
 	Describe("Nginx Service Configuration", func() {
 		It("should include service annotations when configured", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -770,7 +770,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		}
 
 		It("should use the stable detailed log format for access-log-exporter", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -791,7 +791,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should not expose stub_status port (8081) but should expose metrics port (9113) on the nginx Service", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -811,7 +811,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should restrict stub_status to localhost in nginx config", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -830,7 +830,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 
 	Describe("Nginx Custom Name Configuration", func() {
 		It("should use custom name for all nginx resource names and labels", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Name:    "my-custom-proxy",
@@ -860,7 +860,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 
 	Describe("Nginx Namespace Configuration", func() {
 		It("should create nginx namespace when nginx.namespace is set", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled:   true,
 					Namespace: "nginx-proxy",
@@ -872,12 +872,13 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// Should create nginx-proxy namespace
-			Expect(output).To(ContainSubstring("kind: Namespace"))
-			Expect(output).To(MatchRegexp(`(?s)kind: Namespace.*?name: nginx-proxy`), "Should create nginx-proxy namespace")
+			namespace := extractNginxNamespaceSection(output)
+			Expect(namespace).To(ContainSubstring("kind: Namespace"))
+			Expect(namespace).To(ContainSubstring("name: nginx-proxy"), "Should create nginx-proxy namespace")
 		})
 
 		It("should deploy nginx resources to custom namespace", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled:   true,
 					Namespace: "nginx-proxy",
@@ -900,7 +901,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 		})
 
 		It("should use default nginx-proxy namespace when nginx.namespace is omitted", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Nginx: &testhelpers.NginxValues{
 					Enabled: true,
 					Upstream: &testhelpers.NginxUpstreamValues{
@@ -920,7 +921,7 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 
 		It("should use correct namespace in test backend URL when nginx has custom namespace", func() {
 			testEnabled := true
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderNginxTemplate(testhelpers.HelmValues{
 				Test: &testhelpers.TestValues{
 					Enabled: &testEnabled,
 				},
