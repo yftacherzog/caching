@@ -162,7 +162,7 @@ jobs:
           -e KUBECONFIG=/kubeconfig \
           quay.io/konflux-ci/konflux-devprod/coverport-cli@sha256:9a2d0a42fcc0dcea31c1b20b2752bb4dfe76f92a99314968e24f525c782a03f1 \
           collect \
-            --namespace=caching \
+            --namespace=squid-proxy \
             --label-selector="app.kubernetes.io/name=squid" \
             --test-name=e2e-tests \
             --output=/workspace/coverage-output || true

@@ -24,7 +24,6 @@ var (
 )
 
 const (
-	namespace          = testhelpers.Namespace
 	deploymentName     = testhelpers.SquidStatefulSetName
 	serviceName        = testhelpers.SquidServiceName
 	timeout            = testhelpers.Timeout
@@ -77,7 +76,7 @@ func setupHTTPTestServer(msg string) *testhelpers.CachingTestServer {
 // setupHTTPTestClient sets up an HTTP test client
 // Registers a cleanup function to automatically close idle connections
 func setupHTTPTestClient() *http.Client {
-	client, err := testhelpers.NewSquidCachingClient(serviceName, namespace)
+	client, err := testhelpers.NewSquidCachingClient(serviceName, testhelpers.SquidNamespace)
 	Expect(err).NotTo(HaveOccurred(), "Failed to create caching client")
 
 	DeferCleanup(func() {
@@ -119,7 +118,7 @@ var _ = BeforeSuite(func() {
 	} else {
 		// No env var set, try to read from existing deployment
 		fmt.Printf("DEBUG: SQUID_REPLICA_COUNT not set, reading from statefulset...\n")
-		statefulSet, err := clientset.AppsV1().StatefulSets(testhelpers.Namespace).Get(ctx, testhelpers.SquidStatefulSetName, metav1.GetOptions{})
+		statefulSet, err := clientset.AppsV1().StatefulSets(testhelpers.SquidNamespace).Get(ctx, testhelpers.SquidStatefulSetName, metav1.GetOptions{})
 		if err == nil && statefulSet != nil && statefulSet.Spec.Replicas != nil {
 			suiteReplicaCount = *statefulSet.Spec.Replicas
 			fmt.Printf("DEBUG: Using replica count from existing statefulset: %d\n", suiteReplicaCount)
@@ -136,7 +135,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred(), "Failed to configure squid")
 
 	// Verify we can connect to the cluster
-	_, err = clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{Limit: 1})
+	_, err = clientset.CoreV1().Pods(testhelpers.SquidNamespace).List(ctx, metav1.ListOptions{Limit: 1})
 	Expect(err).NotTo(HaveOccurred(), "Failed to connect to Kubernetes cluster")
 
 	By("Suite setup complete - Configuration is ready")
