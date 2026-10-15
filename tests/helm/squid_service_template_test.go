@@ -14,7 +14,13 @@ var _ = Describe("Helm Template Squid Service Configuration", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			service := extractSquidServiceSection(output)
+			Expect(service).NotTo(BeEmpty(), "Should contain squid service")
 			Expect(service).NotTo(ContainSubstring("trafficDistribution"), "Regular service should not have trafficDistribution when not set")
+
+			Expect(extractNginxStatefulSetSection(output)).To(BeEmpty())
+			Expect(extractNginxConfigMapSection(output)).To(BeEmpty())
+			Expect(extractNginxServiceSection(output)).To(BeEmpty())
+			Expect(extractNginxServiceMonitorSection(output)).To(BeEmpty())
 		})
 
 		It("should include trafficDistribution when set", func() {

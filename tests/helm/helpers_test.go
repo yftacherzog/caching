@@ -46,7 +46,7 @@ func extractSection(helmOutput, sourceMarker string) string {
 
 	for _, line := range lines {
 		// Start capturing when we find the source marker
-		if line == sourceMarker {
+		if strings.Contains(line, sourceMarker) {
 			inSection = true
 			continue
 		}

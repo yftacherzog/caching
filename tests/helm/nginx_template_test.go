@@ -58,6 +58,11 @@ var _ = Describe("Helm Template Nginx Configuration", func() {
 			headless := extractNginxHeadlessServiceSection(output)
 			Expect(headless).To(ContainSubstring("nginx-headless"), "Should contain nginx headless service")
 			Expect(headless).To(ContainSubstring("clusterIP: None"), "Headless service should have clusterIP: None")
+
+			Expect(extractSquidDeploymentSection(output)).To(BeEmpty())
+			Expect(extractSquidConfigMapSection(output)).To(BeEmpty())
+			Expect(extractSquidServiceSection(output)).To(BeEmpty())
+			Expect(extractSquidServiceMonitorSection(output)).To(BeEmpty())
 		})
 	})
 
