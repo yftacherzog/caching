@@ -10,15 +10,21 @@ import (
 var _ = Describe("Helm Template Squid Service Configuration", func() {
 	Describe("Squid Service trafficDistribution Configuration", func() {
 		It("should not include trafficDistribution when not set", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{})
+			output, err := renderSquidTemplate(testhelpers.HelmValues{})
 			Expect(err).NotTo(HaveOccurred())
 
 			service := extractSquidServiceSection(output)
+			Expect(service).NotTo(BeEmpty(), "Should contain squid service")
 			Expect(service).NotTo(ContainSubstring("trafficDistribution"), "Regular service should not have trafficDistribution when not set")
+
+			Expect(extractNginxStatefulSetSection(output)).To(BeEmpty())
+			Expect(extractNginxConfigMapSection(output)).To(BeEmpty())
+			Expect(extractNginxServiceSection(output)).To(BeEmpty())
+			Expect(extractNginxServiceMonitorSection(output)).To(BeEmpty())
 		})
 
 		It("should include trafficDistribution when set", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderSquidTemplate(testhelpers.HelmValues{
 				Service: &testhelpers.ServiceValues{
 					TrafficDistribution: "PreferSameZone",
 				},
@@ -30,7 +36,7 @@ var _ = Describe("Helm Template Squid Service Configuration", func() {
 		})
 
 		It("should not include trafficDistribution when set but kube version is before 1.30", func() {
-			output, err := testhelpers.RenderHelmTemplateWithKubeVersion(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderSquidTemplateWithKubeVersion(testhelpers.HelmValues{
 				Service: &testhelpers.ServiceValues{
 					TrafficDistribution: "PreferSameZone",
 				},
@@ -44,7 +50,7 @@ var _ = Describe("Helm Template Squid Service Configuration", func() {
 
 	Describe("Squid Custom Name Configuration", func() {
 		It("should use custom name for all squid resource names and labels", func() {
-			output, err := testhelpers.RenderHelmTemplate(chartPath, testhelpers.SquidHelmValues{
+			output, err := renderSquidTemplate(testhelpers.HelmValues{
 				Squid: &testhelpers.SquidValues{
 					Name: "my-proxy",
 				},

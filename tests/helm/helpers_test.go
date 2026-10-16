@@ -1,9 +1,41 @@
 package helm_test
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/konflux-ci/caching/tests/testhelpers"
+)
 
 // chartPath is the path to the Helm chart under test
 const chartPath = "./caching"
+
+// renderSquidTemplate renders squid in isolation so nginx resources cannot
+// satisfy assertions intended for squid resources.
+func renderSquidTemplate(values testhelpers.HelmValues) (string, error) {
+	values.Nginx = &testhelpers.NginxValues{Enabled: false}
+	return testhelpers.RenderHelmTemplate(chartPath, values)
+}
+
+// renderSquidTemplateWithKubeVersion renders squid in isolation for a
+// specific Kubernetes version.
+func renderSquidTemplateWithKubeVersion(values testhelpers.HelmValues, kubeVersion string) (string, error) {
+	values.Nginx = &testhelpers.NginxValues{Enabled: false}
+	return testhelpers.RenderHelmTemplateWithKubeVersion(chartPath, values, kubeVersion)
+}
+
+// renderNginxTemplate renders nginx in isolation so squid resources cannot
+// satisfy assertions intended for nginx resources.
+func renderNginxTemplate(values testhelpers.HelmValues) (string, error) {
+	values.Squid = &testhelpers.SquidValues{Enabled: testhelpers.BoolPtr(false)}
+	return testhelpers.RenderHelmTemplate(chartPath, values)
+}
+
+// renderNginxTemplateWithKubeVersion renders nginx in isolation for a
+// specific Kubernetes version.
+func renderNginxTemplateWithKubeVersion(values testhelpers.HelmValues, kubeVersion string) (string, error) {
+	values.Squid = &testhelpers.SquidValues{Enabled: testhelpers.BoolPtr(false)}
+	return testhelpers.RenderHelmTemplateWithKubeVersion(chartPath, values, kubeVersion)
+}
 
 // extractSection is a generic helper function that extracts a specific template section from helm output
 // based on the Helm source comment marker (e.g., "# Source: caching/templates/deployment.yaml")
@@ -80,6 +112,11 @@ func extractNginxExporterConfigMapSection(helmOutput string) string {
 // extractNginxServiceMonitorSection extracts just the nginx servicemonitor YAML for precise testing
 func extractNginxServiceMonitorSection(helmOutput string) string {
 	return extractSection(helmOutput, "# Source: caching/templates/nginx-servicemonitor.yaml")
+}
+
+// extractNginxNamespaceSection extracts just the nginx namespace YAML for precise testing
+func extractNginxNamespaceSection(helmOutput string) string {
+	return extractSection(helmOutput, "# Source: caching/templates/nginx-namespace.yaml")
 }
 
 // extractSquidServiceMonitorSection extracts just the squid servicemonitor YAML for precise testing
