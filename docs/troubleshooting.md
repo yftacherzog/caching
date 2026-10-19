@@ -79,7 +79,7 @@ Look for:
 **Solution**: Clean up and reinstall:
 ```bash
 helm uninstall caching 2>/dev/null || true
-kubectl delete namespace squid-proxy nginx-proxy 2>/dev/null || true
+kubectl delete namespace squid-proxy nginx-proxy caching-test 2>/dev/null || true
 # Wait a few seconds for cleanup
 sleep 5
 helm install caching ./caching
@@ -105,7 +105,7 @@ kubectl cluster-info dump | grep -i cidr
 
 **Solution**: Ensure downward API is configured (automatically handled by Helm chart):
 ```bash
-kubectl describe pod -n squid-proxy <test-pod-name>
+kubectl describe pod -n caching-test <test-pod-name>
 ```
 
 ### 8. Mirrord Connection Issues
@@ -115,10 +115,10 @@ kubectl describe pod -n squid-proxy <test-pod-name>
 **Solution**: Verify mirrord infrastructure is deployed and working:
 ```bash
 # Verify mirrord target pod is ready
-kubectl get pods -n squid-proxy -l app.kubernetes.io/component=mirrord-target
+kubectl get pods -n caching-test -l app.kubernetes.io/component=mirrord-target
 
 # Check mirrord target pod logs
-kubectl logs -n squid-proxy mirrord-test-target
+kubectl logs -n caching-test mirrord-test-target
 
 # Verify mirrord configuration
 cat .mirrord/mirrord.json
@@ -147,7 +147,7 @@ kubectl run debug --image=curlimages/curl:latest --rm -it -- \
   curl -v --proxy http://squid.<NAMESPACE>.svc.cluster.local:3128 http://httpbin.org/ip
 
 # View test logs from helm tests
-kubectl logs -n squid-proxy -l app.kubernetes.io/component=test
+kubectl logs -n caching-test -l app.kubernetes.io/component=test
 ```
 
 ### 10. Working with Existing kind Clusters (Dev Container Users)
@@ -183,11 +183,11 @@ kubectl run debug --image=curlimages/curl:latest --rm -it -- curl -v --proxy htt
 kubectl get endpoints -n squid-proxy
 
 # Verify test infrastructure (when running tests)
-kubectl get pods -n squid-proxy -l app.kubernetes.io/component=mirrord-target
-kubectl get pods -n squid-proxy -l app.kubernetes.io/component=test
+kubectl get pods -n caching-test -l app.kubernetes.io/component=mirrord-target
+kubectl get pods -n caching-test -l app.kubernetes.io/component=test
 
 # View test logs from helm tests
-kubectl logs -n squid-proxy -l app.kubernetes.io/component=test
+kubectl logs -n caching-test -l app.kubernetes.io/component=test
 ```
 
 ## Health Checks

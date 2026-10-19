@@ -429,7 +429,8 @@ type SelfsignedBundleValues struct {
 
 // TestValues holds test configuration
 type TestValues struct {
-	Enabled *bool `json:"enabled,omitempty"`
+	Enabled   *bool  `json:"enabled,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
 }
 
 // SquidExporterValues holds squid-exporter configuration
@@ -546,13 +547,23 @@ func ConfigureSquidWithHelm(ctx context.Context, client kubernetes.Interface, va
 	}
 
 	values.Environment = environment
-
-	// Always enable nginx (disabled by default in values.yaml)
-	if values.Nginx == nil {
-		values.Nginx = &NginxValues{Enabled: true}
-	} else {
-		values.Nginx.Enabled = true
+	squidEnabled := os.Getenv("SQUID_ENABLED") != "false"
+	nginxEnabled := os.Getenv("NGINX_ENABLED") != "false"
+	if values.Squid == nil {
+		values.Squid = &SquidValues{}
 	}
+	values.Squid.Enabled = BoolPtr(squidEnabled)
+	values.Squid.Namespace = SquidNamespace
+	if values.Test == nil {
+		values.Test = &TestValues{}
+	}
+	values.Test.Namespace = TestNamespace
+
+	if values.Nginx == nil {
+		values.Nginx = &NginxValues{}
+	}
+	values.Nginx.Enabled = nginxEnabled
+	values.Nginx.Namespace = NginxNamespace
 
 	openshift, err := IsOpenShiftPlatform(client)
 	if err != nil {
@@ -560,7 +571,13 @@ func ConfigureSquidWithHelm(ctx context.Context, client kubernetes.Interface, va
 	}
 
 	// Get current statefulset for image preservation logic
-	statefulSet, err := client.AppsV1().StatefulSets(SquidNamespace).Get(ctx, SquidStatefulSetName, metav1.GetOptions{})
+	var statefulSet *v1.StatefulSet
+	if squidEnabled {
+		statefulSet, err = client.AppsV1().StatefulSets(SquidNamespace).Get(ctx, SquidStatefulSetName, metav1.GetOptions{})
+		if err != nil {
+			return fmt.Errorf("failed to get squid statefulset: %w", err)
+		}
+	}
 
 	// Handle replica count logic:
 	// 1. If SQUID_REPLICA_COUNT env var does not exist or equals 0 -> use value from values.yaml (don't set ReplicaCount)
@@ -603,14 +620,18 @@ func ConfigureSquidWithHelm(ctx context.Context, client kubernetes.Interface, va
 		return fmt.Errorf("failed to upgrade squid with helm: %w", err)
 	}
 
-	_, err = WaitForStatefulSetReady(ctx, client, SquidNamespace, SquidStatefulSetName)
-	if err != nil {
-		return fmt.Errorf("failed to wait for squid statefulset to be ready: %w", err)
+	if squidEnabled {
+		_, err = WaitForStatefulSetReady(ctx, client, SquidNamespace, SquidStatefulSetName)
+		if err != nil {
+			return fmt.Errorf("failed to wait for squid statefulset to be ready: %w", err)
+		}
 	}
 
-	_, err = WaitForStatefulSetReady(ctx, client, NginxNamespace, NginxStatefulSetName)
-	if err != nil {
-		return fmt.Errorf("failed to wait for nginx statefulset to be ready: %w", err)
+	if nginxEnabled {
+		_, err = WaitForStatefulSetReady(ctx, client, NginxNamespace, NginxStatefulSetName)
+		if err != nil {
+			return fmt.Errorf("failed to wait for nginx statefulset to be ready: %w", err)
+		}
 	}
 
 	return nil

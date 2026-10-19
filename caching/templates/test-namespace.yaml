@@ -1,0 +1,14 @@
+{{- if or .Values.test.enabled .Values.mirrord.enabled }}
+{{- if and .Values.squid.enabled (eq .Values.test.namespace .Values.squid.namespace) }}
+{{- fail "test.namespace must be distinct from squid.namespace when Squid is enabled" }}
+{{- end }}
+{{- if and .Values.nginx.enabled (eq .Values.test.namespace .Values.nginx.namespace) }}
+{{- fail "test.namespace must be distinct from nginx.namespace when Nginx is enabled" }}
+{{- end }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ include "caching.test.namespace" . }}
+  labels:
+    name: {{ include "caching.test.namespace" . }}
+{{- end }}

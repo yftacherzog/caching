@@ -33,6 +33,7 @@ const (
 var (
 	SquidNamespace     = namespaceFromEnv("SQUID_NAMESPACE", "squid-proxy")
 	NginxNamespace     = namespaceFromEnv("NGINX_NAMESPACE", "nginx-proxy")
+	TestNamespace      = namespaceFromEnv("TARGET_NAMESPACE", "caching-test")
 	SquidTLSSecretName = SquidNamespace + "-tls"
 )
 
