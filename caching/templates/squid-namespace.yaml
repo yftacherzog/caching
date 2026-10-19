@@ -1,4 +1,4 @@
-{{- if or .Values.squid.enabled .Values.test.enabled .Values.mirrord.enabled }}
+{{- if .Values.squid.enabled }}
 apiVersion: v1
 kind: Namespace
 metadata:

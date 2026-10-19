@@ -1,7 +1,7 @@
 {
     "target": {
         "path": "pod/mirrord-test-target",
-        "namespace": "squid-proxy"
+        "namespace": "caching-test"
     },
     "feature": {
         "network": {

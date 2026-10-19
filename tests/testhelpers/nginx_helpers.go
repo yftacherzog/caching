@@ -152,7 +152,7 @@ func CreateNginxCertificate(ctx context.Context, client *certmanagerclient.Clien
 				Size:      256,
 			},
 			IssuerRef: certmanagermeta.IssuerReference{
-				Name:  SquidNamespace + "-ca-issuer",
+				Name:  "test-server-ca-issuer",
 				Kind:  "ClusterIssuer",
 				Group: "cert-manager.io",
 			},

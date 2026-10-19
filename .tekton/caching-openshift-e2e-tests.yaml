@@ -296,7 +296,7 @@ spec:
                 git checkout $(params.git-revision)
 
                 # Use default namespace for Helm release (matches magefile.go behavior)
-                # Resources use the squid-proxy and nginx-proxy namespaces from chart defaults
+                # Resources use the squid-proxy, nginx-proxy, and caching-test namespaces from chart defaults
                 namespace="default"
 
                 # Check for image pull secrets in the resource namespace
@@ -360,6 +360,7 @@ spec:
                   --namespace "$namespace" \
                   --set nginx.enabled=true \
                   --set squid.enabled=true \
+                  --set test.namespace=caching-test \
                   --set environment=prerelease \
                   --set envSettings.prerelease.squid.image.repository="$squid_repo" \
                   --set envSettings.prerelease.squid.image.tag="$squid_tag" \
@@ -379,16 +380,23 @@ spec:
 
                 echo "Caching chart deployed successfully!"
 
+                # The test pod runs in its own namespace and needs the same registry credentials.
+                for secret in $pull_secrets; do
+                  oc get secret -n squid-proxy "$secret" -o json | \
+                    jq 'del(.metadata.namespace,.metadata.resourceVersion,.metadata.uid,.metadata.creationTimestamp,.metadata.managedFields) | .metadata.namespace="caching-test"' | \
+                    oc apply -f -
+                done
+
                 echo "Running Helm tests..."
                 if ! helm test caching --namespace "$namespace" --timeout 90m; then
                   echo "ERROR: Helm test failed!"
                   echo "=== caching-test pod logs (failure) ==="
-                  oc logs -n squid-proxy caching-test --tail=2000 2>&1 || true
+                  oc logs -n caching-test caching-test --tail=2000 2>&1 || true
                   exit 1
                 fi
 
                 echo "Helm tests succeeded, capturing caching-test logs for diagnostics..."
                 echo "=== caching-test pod logs (success) ==="
-                oc logs -n squid-proxy caching-test --tail=2000 2>&1 || true
+                oc logs -n caching-test caching-test --tail=2000 2>&1 || true
 
                 echo "All E2E tests passed!"

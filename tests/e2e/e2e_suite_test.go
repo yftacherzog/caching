@@ -107,7 +107,7 @@ var _ = BeforeSuite(func() {
 	certManagerClient, err = certmanagerclient.NewForConfig(config)
 	Expect(err).NotTo(HaveOccurred(), "Failed to create cert-manager client")
 
-	// Read replica count from environment variable or from existing deployment
+	// Read replica count from environment variable or from an existing Squid deployment.
 	if envReplicas := os.Getenv("SQUID_REPLICA_COUNT"); envReplicas != "" {
 		if count, parseErr := strconv.ParseInt(envReplicas, 10, 32); parseErr == nil {
 			suiteReplicaCount = int32(count)
@@ -135,7 +135,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred(), "Failed to configure squid")
 
 	// Verify we can connect to the cluster
-	_, err = clientset.CoreV1().Pods(testhelpers.SquidNamespace).List(ctx, metav1.ListOptions{Limit: 1})
+	_, err = clientset.CoreV1().Pods(testhelpers.TestNamespace).List(ctx, metav1.ListOptions{Limit: 1})
 	Expect(err).NotTo(HaveOccurred(), "Failed to connect to Kubernetes cluster")
 
 	By("Suite setup complete - Configuration is ready")

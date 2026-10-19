@@ -46,8 +46,8 @@ fi
 # Remove any existing deployment
 helm uninstall caching 2>/dev/null || true
 
-# Remove namespaces (component namespaces)
-kubectl delete namespace squid-proxy nginx-proxy 2>/dev/null || true
+# Remove chart-managed namespaces
+kubectl delete namespace caching-test squid-proxy nginx-proxy 2>/dev/null || true
 
 # Wait for cleanup
 sleep 10
@@ -307,5 +307,5 @@ curl -s http://localhost:9301/metrics | grep squid_up
 pkill -f "kubectl port-forward.*9301"
 
 # Quick cleanup
-helm uninstall caching && kubectl delete namespace squid-proxy nginx-proxy
+helm uninstall caching && kubectl delete namespace caching-test squid-proxy nginx-proxy
 ```

@@ -190,11 +190,13 @@ kind load image-archive --name caching <(podman save localhost/konflux-ci/cachin
 # Deploy for local dev — enables nginx reverse proxy (required for access-log-exporter sidecar)
 helm install caching ./caching --set environment=dev --set nginx.enabled=true
 kubectl get pods -n squid-proxy
+kubectl get pods -n nginx-proxy
+kubectl get pods -n caching-test
 ```
 
 ### Helm Configuration Examples
 
-Use distinct, non-empty names for `squid.namespace` and `nginx.namespace`. Test and mirrord resources use the Squid namespace. Configure namespace annotations with `squid.namespaceAnnotations` and `nginx.namespaceAnnotations`; `{}` or `null` applies no annotations.
+Use distinct, non-empty names for `squid.namespace`, `nginx.namespace`, and `test.namespace`. Test and mirrord resources use `test.namespace`. Configure namespace annotations with `squid.namespaceAnnotations` and `nginx.namespaceAnnotations`; `{}` or `null` applies no annotations.
 
 ```bash
 # Full install with cert-manager
@@ -225,7 +227,7 @@ mage clean              # Remove cluster + images (recommended)
 ```bash
 # Remove Helm release and namespace
 helm uninstall caching
-kubectl delete namespace squid-proxy nginx-proxy
+kubectl delete namespace caching-test squid-proxy nginx-proxy
 
 # Remove cert-manager namespace (if installed via chart)
 kubectl delete namespace cert-manager

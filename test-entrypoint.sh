@@ -5,6 +5,7 @@ set -euo pipefail
 # This script prepares the environment and runs Ginkgo E2E tests
 
 echo "=== Starting Ginkgo E2E Tests ==="
+echo "Target namespace: ${TARGET_NAMESPACE:-caching-test}"
 echo "Squid namespace: ${SQUID_NAMESPACE:-squid-proxy}"
 echo "Nginx namespace: ${NGINX_NAMESPACE:-nginx-proxy}"
 echo "Squid service: ${SQUID_SERVICE:-squid.squid-proxy.svc.cluster.local:3128}"

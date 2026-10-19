@@ -38,6 +38,11 @@ Determine namespace for Nginx component
 {{- .Values.nginx.namespace -}}
 {{- end }}
 
+{{/* Determine namespace for test and mirrord resources. */}}
+{{- define "caching.test.namespace" -}}
+{{- .Values.test.namespace -}}
+{{- end }}
+
 {{/*
 =============================================================================
 DNS / FQDN HELPERS
@@ -67,7 +72,7 @@ Build a fully qualified domain name: <name>.<namespace>.svc.<clusterDomain>
 {{- end }}
 
 {{- define "caching.test-server.fqdn" -}}
-{{- include "caching.fqdn" (dict "name" "test-server" "namespace" (include "caching.squid.namespace" .) "ctx" .) -}}
+{{- include "caching.fqdn" (dict "name" "test-server" "namespace" (include "caching.test.namespace" .) "ctx" .) -}}
 {{- end }}
 
 {{/*
@@ -133,6 +138,15 @@ Get test image for current environment
 {{- else -}}
   {{- printf "%s:%s" $envSettings.test.image.repository $envSettings.test.image.tag -}}
 {{- end -}}
+{{- end }}
+
+{{/* Common labels for test and mirrord infrastructure. */}}
+{{- define "caching.test.labels" -}}
+helm.sh/chart: {{ include "caching.chart" . }}
+app.kubernetes.io/name: {{ .Values.test.name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/component: test
 {{- end }}
 
 {{/*

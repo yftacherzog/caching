@@ -126,6 +126,7 @@ helm install caching ./caching --set environment=dev --set nginx.enabled=true
 | `nginx.enabled` | `false` | Deploy NGINX reverse proxy |
 | `squid.namespace` | `"squid-proxy"` | Namespace for Squid proxy components |
 | `nginx.namespace` | `"nginx-proxy"` | Namespace for NGINX reverse proxy components |
+| `test.namespace` | `"caching-test"` | Namespace for Helm test, test-server, mirrord, service account, and RBAC resources |
 | `clusterDomain` | `""` (defaults to `cluster.local`) | Cluster DNS domain for FQDN generation |
 
 Squid and Nginx deploy into `squid-proxy` and `nginx-proxy` by default. Override these with `squid.namespace` and `nginx.namespace`.
@@ -183,7 +184,7 @@ mage cachingHelm:status
 |-------|----------|
 | Cluster exists error | `kind export kubeconfig --name caching` |
 | Image pull errors | `mage build:loadSquid` |
-| Namespace errors | `helm uninstall caching && kubectl delete ns squid-proxy nginx-proxy` |
+| Namespace errors | `helm uninstall caching && kubectl delete ns caching-test squid-proxy nginx-proxy` |
 | Connection refused | Check squid ACLs cover your pod CIDR |
 
 For detailed troubleshooting, see [docs/troubleshooting.md](docs/troubleshooting.md).
@@ -196,7 +197,7 @@ mage clean
 
 # Manual
 helm uninstall caching
-kubectl delete namespace squid-proxy nginx-proxy
+kubectl delete namespace caching-test squid-proxy nginx-proxy
 kind delete cluster --name caching
 ```
 
